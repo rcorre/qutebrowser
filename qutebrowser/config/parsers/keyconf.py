@@ -27,7 +27,7 @@ from PyQt5.QtCore import pyqtSignal, QObject
 
 from qutebrowser.config import configdata, textwrapper
 from qutebrowser.commands import cmdutils, cmdexc
-from qutebrowser.utils import log, utils, qtutils
+from qutebrowser.utils import log, utils, qtutils, usertypes
 
 
 class KeyConfigError(Exception):
@@ -150,8 +150,10 @@ class KeyConfigParser(QObject):
             data = str(self)
             f.write(data)
 
-    @cmdutils.register(instance='key-config', maxsplit=1, no_cmd_split=True)
-    def bind(self, key, command, *, mode=None, force=False):
+    @cmdutils.register(instance='key-config', maxsplit=1, no_cmd_split=True,
+                       completion=[usertypes.Completion.empty,
+                                   usertypes.Completion.keybinding])
+    def bind(self, key, command=None, *, mode=None, force=False):
         """Bind a key to a command.
 
         Args:

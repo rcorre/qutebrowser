@@ -23,7 +23,7 @@ from PyQt5.QtCore import Qt, QTimer, pyqtSlot
 
 from qutebrowser.browser import webview
 from qutebrowser.config import config, configdata
-from qutebrowser.utils import objreg, log
+from qutebrowser.utils import objreg, log, usertypes
 from qutebrowser.commands import cmdutils
 from qutebrowser.completion.models import base
 
@@ -216,3 +216,34 @@ class TabCompletionModel(base.BaseCompletionModel):
                 self.new_item(c, "{}/{}".format(win_id, i+1),
                               tab.url().toDisplayString(),
                               tabbed_browser.page_title(i))
+
+class KeybindingCompletionModel(base.BaseCompletionModel):
+
+    """A CompletionModel that shows the existing command bound to a key."""
+
+    # https://github.com/The-Compiler/qutebrowser/issues/545
+    # pylint: disable=abstract-method
+
+    def __init__(self, key, bindings, parent=None):
+        """Set up binding completions for a particular key across all modes.
+
+        Args:
+            key: The key for which to show bindings.
+            bindings: A map of mode->cmd, where cmd is None if unbound.
+        """
+        super().__init__(parent)
+        for mode, cmd in bindings.items():
+            if cmd is not None:
+                cat = self.new_category(mode)
+                self.new_item(cat, "--mode={} {}".format(mode, cmd), "")
+        # TODO: keyconfparser.changed.connect()
+
+class EmptyCompletionModel(base.BaseCompletionModel):
+
+    """A CompletionModel that provides no completions."""
+
+    # https://github.com/The-Compiler/qutebrowser/issues/545
+    # pylint: disable=abstract-method
+
+    def __init__(self, parent=None):
+        super().__init__(parent)

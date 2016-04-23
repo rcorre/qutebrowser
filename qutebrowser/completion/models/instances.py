@@ -118,6 +118,33 @@ def init_session_completion():
     model = miscmodels.SessionCompletionModel()
     _instances[usertypes.Completion.sessions] = model
 
+def _init_keybinding_completions():
+    """Initialize keybinding completion models."""
+    log.completion.debug("Initializing binding completion.")
+    _instances[usertypes.Completion.keybinding] = {}
+    keyconfparser = objreg.get('key-config')
+    bindings = {} # bindings[key][mode] -> cmd
+    for mode in usertypes.KeyMode.__members__:
+        for (key, cmd) in keyconfparser.get_bindings_for(mode).items():
+            if key not in bindings:
+                bindings[key] = {}
+            bindings[key][mode] = cmd
+
+    for key, modebindings in bindings.items():
+        key_model = miscmodels.KeybindingCompletionModel(key, modebindings)
+        _instances[usertypes.Completion.keybinding][key] = key_model
+
+@pyqtSlot()
+def init_empty_completion():
+    """Initialize empty completion model."""
+    log.completion.debug("Initializing empty completion.")
+    try:
+        _instances[usertypes.Completion.empty].deleteLater()
+    except KeyError:
+        pass
+    model = miscmodels.EmptyCompletionModel()
+    _instances[usertypes.Completion.empty] = model
+
 
 INITIALIZERS = {
     usertypes.Completion.command: _init_command_completion,
@@ -128,8 +155,11 @@ INITIALIZERS = {
     usertypes.Completion.option: _init_setting_completions,
     usertypes.Completion.value: _init_setting_completions,
     usertypes.Completion.quickmark_by_name: init_quickmark_completions,
+    usertypes.Completion.quickmark_by_name: init_quickmark_completions,
     usertypes.Completion.bookmark_by_url: init_bookmark_completions,
     usertypes.Completion.sessions: init_session_completion,
+    usertypes.Completion.keybinding: _init_keybinding_completions,
+    usertypes.Completion.empty: init_empty_completion,
 }
 
 

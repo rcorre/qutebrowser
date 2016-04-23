@@ -151,6 +151,9 @@ class Completer(QObject):
             except KeyError:
                 # No completion model for this section/option.
                 model = None
+        elif completion == usertypes.Completion.keybinding:
+            key = parts[cursor_part - 1]
+            model = instances.get(completion).get(key)
         else:
             model = instances.get(completion)
 
