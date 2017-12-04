@@ -206,13 +206,14 @@ class SqlTable(QObject):
         """
         super().__init__(parent)
         self._name = name
+        self._create_table(name, fields, constraints=constraints)
 
+    def _create_table(self, name, fields, constraints=None):
         constraints = constraints or {}
         column_defs = ['{} {}'.format(field, constraints.get(field, ''))
                        for field in fields]
         q = Query("CREATE TABLE IF NOT EXISTS {name} ({column_defs})"
                   .format(name=name, column_defs=', '.join(column_defs)))
-
         q.run()
 
     def create_index(self, name, field):
@@ -330,3 +331,32 @@ class SqlTable(QObject):
                           sort_order=sort_order))
         q.run(limit=limit)
         return q
+
+
+class FtsTable(SqlTable):
+
+    """Interface to a Full Text Search virtual table.
+
+    See https://sqlite.org/fts3.html.
+    """
+
+    changed = pyqtSignal()
+
+    def __init__(self, name, fields, parent=None):
+        """Create a new table in the sql database.
+
+        Does nothing if the table already exists.
+
+        Args:
+            name: Name of the table.
+            fields: A list of field names.
+            constraints: A dict mapping field names to constraint strings.
+        """
+        super().__init__(name, fields, parent=parent)
+
+    def _create_table(self, name, fields, constraints=None):
+        """Override SqlTable._create_table."""
+        q = Query("CREATE VIRTUAL TABLE IF NOT EXISTS {name} USING "
+                  "fts5({fields})"
+                  .format(name=name, fields=', '.join(fields)))
+        q.run()

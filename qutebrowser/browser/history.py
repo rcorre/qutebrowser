@@ -32,20 +32,16 @@ from qutebrowser.misc import objects, sql
 
 
 # increment to indicate that HistoryCompletion must be regenerated
-_USER_VERSION = 1
+_USER_VERSION = 2
 
 
-class CompletionHistory(sql.SqlTable):
+class CompletionHistory(sql.FtsTable):
 
     """History which only has the newest entry for each URL."""
 
     def __init__(self, parent=None):
         super().__init__("CompletionHistory", ['url', 'title', 'last_atime'],
-                         constraints={'url': 'PRIMARY KEY',
-                                      'title': 'NOT NULL',
-                                      'last_atime': 'NOT NULL'},
                          parent=parent)
-        self.create_index('CompletionHistoryAtimeIndex', 'last_atime')
 
 
 class WebHistory(sql.SqlTable):
