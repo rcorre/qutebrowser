@@ -60,10 +60,14 @@ class WebHistory(sql.SqlTable):
                                       'redirect': 'NOT NULL'},
                          parent=parent)
         self.completion = CompletionHistory(parent=self)
-        if sql.Query('pragma user_version').run().value() < _USER_VERSION:
-            self.completion.delete_all()
+        cur_version = sql.Query('pragma user_version').run().value()
+        if cur_version < _USER_VERSION:
+            log.sql.info('Updating completion schema from {} to {}'
+                         .format(cur_version, _USER_VERSION))
+            self.completion.drop()
         if not self.completion:
             # either the table is out-of-date or the user wiped it manually
+            log.sql.info('Rebuilding completion table')
             self._rebuild_completion()
         self.create_index('HistoryIndex', 'url')
         self.create_index('HistoryAtimeIndex', 'atime')

@@ -306,6 +306,14 @@ class SqlTable(QObject):
         Query("DELETE FROM {table}".format(table=self._name)).run()
         self.changed.emit()
 
+    def drop(self):
+        """Delete the table.
+
+        Unlike delete_all, this removes the content AND the table itself.
+        """
+        Query("DROP TABLE {table}".format(table=self._name)).run()
+        self.changed.emit()
+
     def select(self, sort_by, sort_order, limit=-1):
         """Prepare, run, and return a select statement on this table.
 

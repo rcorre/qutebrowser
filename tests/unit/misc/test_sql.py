@@ -228,5 +228,16 @@ def test_delete_all(qtbot):
     assert list(table) == []
 
 
+def test_drop(qtbot):
+    table = sql.SqlTable('Foo', ['name', 'val', 'lucky'])
+    table.insert({'name': 'one', 'val': 1, 'lucky': False})
+    table.insert({'name': 'nine', 'val': 9, 'lucky': False})
+    table.insert({'name': 'thirteen', 'val': 13, 'lucky': True})
+    with qtbot.waitSignal(table.changed):
+        table.drop()
+    with pytest.raises(sql.SqlError, match='no such table'):
+        assert list(table) == []
+
+
 def test_version():
     assert isinstance(sql.version(), str)
