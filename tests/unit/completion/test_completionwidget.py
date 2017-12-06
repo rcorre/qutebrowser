@@ -37,7 +37,8 @@ def completionview(qtbot, status_command_stub, config_stub, win_registry,
     mocker.patch(
         'qutebrowser.completion.completiondelegate.CompletionItemDelegate',
         new=lambda *_: None)
-    view = completionwidget.CompletionView(win_id=0)
+    view = completionwidget.CompletionView(win_id=0,
+        status_cmd=status_command_stub)
     qtbot.addWidget(view)
     return view
 

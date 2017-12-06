@@ -28,7 +28,7 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel, QSize
 
 from qutebrowser.config import config
 from qutebrowser.completion import completiondelegate
-from qutebrowser.utils import utils, usertypes, debug, log, objreg
+from qutebrowser.utils import utils, usertypes, debug, log
 from qutebrowser.commands import cmdexc, cmdutils
 
 
@@ -42,6 +42,7 @@ class CompletionView(QTreeView):
     Attributes:
         pattern: Current filter pattern, used for highlighting.
         _win_id: The ID of the window this CompletionView is associated with.
+        _status_cmd: The status command prompt.
         _height: The height to use for the CompletionView.
         _height_perc: Either None or a percentage if height should be relative.
         _delegate: The item delegate used.
@@ -105,10 +106,11 @@ class CompletionView(QTreeView):
     update_geometry = pyqtSignal()
     selection_changed = pyqtSignal(str)
 
-    def __init__(self, win_id, parent=None):
+    def __init__(self, win_id, status_cmd, parent=None):
         super().__init__(parent)
         self.pattern = ''
         self._win_id = win_id
+        self._status_cmd = status_cmd
         config.instance.changed.connect(self._on_config_changed)
 
         self._active = False
@@ -235,8 +237,7 @@ class CompletionView(QTreeView):
             history: Navigate through command history if no text was typed.
         """
         if history:
-            status = objreg.get('status-command', scope='window',
-                                window=self._win_id)
+            status = self._status_cmd
             if (status.text() == ':' or status.history.is_browsing() or
                     not self._active):
                 if which == 'next':
@@ -400,9 +401,7 @@ class CompletionView(QTreeView):
         Args:
             sel: Use the primary selection instead of the clipboard.
         """
-        status = objreg.get('status-command', scope='window',
-                            window=self._win_id)
-        text = status.selectedText()
+        text = self._status_cmd.selectedText()
         if not text:
             index = self.currentIndex()
             if not index.isValid():
