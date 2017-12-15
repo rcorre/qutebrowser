@@ -158,9 +158,22 @@ class CompletionView(QTreeView):
                 pixel_widths[-1] -= delta
             else:
                 pixel_widths[-2] -= delta
+
+        start = self.indexAt(self.rect().topLeft())
+        end = self.indexAt(self.rect().bottomRight())
+        print(start.data())
+        #self.walkIndices(start, end)
+
         for i, w in enumerate(pixel_widths):
             assert w >= 0, i
             self.setColumnWidth(i, w)
+
+    def walkIndices(self, start, end):
+        cat_idx = start
+        while idx.isValid():
+            print(idx.data())
+            print(start.child(0,0).isValid())
+            print(start.child(0,0).child(0,0).isValid())
 
     def _next_idx(self, upwards):
         """Get the previous/next QModelIndex displayed in the view.
@@ -300,7 +313,9 @@ class CompletionView(QTreeView):
 
         model.setParent(self)
         self._active = True
+        self._maybe_show()
 
+        self._resize_columns()
         for i in range(model.rowCount()):
             self.expand(model.index(i, 0))
 
@@ -379,7 +394,6 @@ class CompletionView(QTreeView):
         scrollbar = self.verticalScrollBar()
         if scrollbar is not None:
             scrollbar.setValue(scrollbar.minimum())
-        self._resize_columns()
         super().showEvent(e)
 
     @cmdutils.register(instance='completion',
